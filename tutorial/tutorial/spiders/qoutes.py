@@ -3,8 +3,9 @@ from ..items import TutorialItem
 
 class QoutesSpider(scrapy.Spider):
     name = "qoutes"
+    page_number = 2
     allowed_domains = ["toscrape.com"]
-    start_urls = ["https://quotes.toscrape.com/"]
+    start_urls = ["https://quotes.toscrape.com/page/1"]
 
     def parse(self, response):
         items = TutorialItem()
@@ -19,8 +20,9 @@ class QoutesSpider(scrapy.Spider):
             items["tags"] = tags
             yield items
 
-        next_page = response.css("li.next a::attr(href)").get()
-        if next_page is not None:
+        next_page = "https://quotes.toscrape.com/page/"+str(QoutesSpider.page_number) + "/"
+        if QoutesSpider.page_number <11:
+            QoutesSpider.page_number +=1
             yield response.follow(next_page,callback = self.parse)
 
 
