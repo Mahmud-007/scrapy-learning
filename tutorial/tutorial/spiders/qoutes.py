@@ -1,13 +1,23 @@
 import scrapy
+from scrapy.http import FormRequest
 from ..items import TutorialItem
 
 class QoutesSpider(scrapy.Spider):
     name = "qoutes"
     page_number = 2
     allowed_domains = ["toscrape.com"]
-    start_urls = ["https://quotes.toscrape.com/page/1"]
+    start_urls = ["https://quotes.toscrape.com/login"]
 
     def parse(self, response):
+        token = response.css("form input::attr(value)").extract()
+        print("csrf",token)
+        return FormRequest.from_response(response, formdata={
+            "csrf_token": token,
+            "username": "attreya01@gmail.com",
+            "password": "dsadsdsa"
+        }, callback = self.start_scraping)
+    
+    def start_scraping(self,response):
         items = TutorialItem()
         all_div_quotes = response.css("div.quote")
         
@@ -19,10 +29,3 @@ class QoutesSpider(scrapy.Spider):
             items["author"] = author
             items["tags"] = tags
             yield items
-
-        next_page = "https://quotes.toscrape.com/page/"+str(QoutesSpider.page_number) + "/"
-        if QoutesSpider.page_number <11:
-            QoutesSpider.page_number +=1
-            yield response.follow(next_page,callback = self.parse)
-
-
